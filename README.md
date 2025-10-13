@@ -14,11 +14,11 @@ All implementations use **Microsoft Semantic Kernel** as the primary library for
 ## 📁 Repository Structure
 
 ```
-├── sample/          # Starting templates for participants
+├── demo/          # Starting templates for participants
 │   ├── java/        # Java Spring starter project
 │   ├── dotnet/      # .NET Aspire starter project
 │   └── python/      # Python FastAPI starter project
-├── demo/            # Complete demo implementations
+├── sample/            # Complete demo implementations
 │   ├── java/        # Java Spring demo with AI integration
 │   ├── dotnet/      # .NET Aspire demo with AI integration
 │   └── python/      # Python FastAPI demo with AI integration
