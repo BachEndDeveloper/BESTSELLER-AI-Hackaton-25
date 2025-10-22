@@ -1,0 +1,417 @@
+openapi: 3.1.0
+info:
+  title: BESTSELLER API
+  description: API for managing items, stock, and tracking information
+  version: 1.0.0
+  contact:
+    name: BESTSELLER API Support
+    email: support@bestseller.com
+
+servers:
+  - url: https://api.bestseller.com/v1
+    description: Production server
+  - url: https://staging-api.bestseller.com/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Local development server
+
+tags:
+  - name: Items
+    description: Operations related to items
+  - name: Stock
+    description: Operations related to stock management
+  - name: Track
+    description: Operations related to order tracking
+
+paths:
+  /items:
+    get:
+      tags:
+        - Items
+      summary: Get all items
+      description: Returns a list of all items with their name, item ID, and price
+      operationId: getAllItems
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemSummary'
+              examples:
+                itemsList:
+                  summary: Example list of items
+                  value:
+                    - itemId: "item-001"
+                      name: "Classic T-Shirt"
+                      price: 29.99
+                    - itemId: "item-002"
+                      name: "Denim Jeans"
+                      price: 79.99
+                    - itemId: "item-003"
+                      name: "Summer Dress"
+                      price: 49.99
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /items/{itemId}:
+    get:
+      tags:
+        - Items
+      summary: Get item by ID
+      description: Returns detailed information about a specific item including full description
+      operationId: getItemById
+      parameters:
+        - name: itemId
+          in: path
+          description: Unique identifier of the item
+          required: true
+          schema:
+            type: string
+          examples:
+            itemExample:
+              summary: Example item ID
+              value: "item-001"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemDetail'
+              examples:
+                itemDetail:
+                  summary: Example item details
+                  value:
+                    itemId: "item-001"
+                    name: "Classic T-Shirt"
+                    price: 29.99
+                    description: "A comfortable cotton t-shirt perfect for everyday wear. Made from 100% organic cotton with a relaxed fit. Available in multiple colors and sizes."
+                    category: "Apparel"
+                    brand: "BESTSELLER"
+                    sku: "BST-TS-001"
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/{itemId}:
+    get:
+      tags:
+        - Stock
+      summary: Get stock information for an item
+      description: Returns stock availability information for a specific item, including whether it is in stock and the quantity available
+      operationId: getStockByItemId
+      parameters:
+        - name: itemId
+          in: path
+          description: Unique identifier of the item to check stock for
+          required: true
+          schema:
+            type: string
+          examples:
+            itemExample:
+              summary: Example item ID
+              value: "item-001"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockInfo'
+              examples:
+                inStock:
+                  summary: Item in stock
+                  value:
+                    itemId: "item-001"
+                    inStock: true
+                    quantity: 150
+                    warehouse: "Main Warehouse"
+                    lastUpdated: "2025-10-22T06:00:00Z"
+                outOfStock:
+                  summary: Item out of stock
+                  value:
+                    itemId: "item-002"
+                    inStock: false
+                    quantity: 0
+                    warehouse: "Main Warehouse"
+                    lastUpdated: "2025-10-22T06:00:00Z"
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /track/{trackingNo}:
+    get:
+      tags:
+        - Track
+      summary: Get tracking status
+      description: Returns the current status and tracking information for the provided tracking number
+      operationId: getTrackingStatus
+      parameters:
+        - name: trackingNo
+          in: path
+          description: Tracking number for the shipment
+          required: true
+          schema:
+            type: string
+          examples:
+            trackingExample:
+              summary: Example tracking number
+              value: "TRK-2025-001234"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingInfo'
+              examples:
+                inTransit:
+                  summary: Package in transit
+                  value:
+                    trackingNo: "TRK-2025-001234"
+                    status: "In Transit"
+                    currentLocation: "Distribution Center - Copenhagen"
+                    estimatedDelivery: "2025-10-25T18:00:00Z"
+                    history:
+                      - timestamp: "2025-10-22T08:00:00Z"
+                        location: "Distribution Center - Copenhagen"
+                        status: "In Transit"
+                        description: "Package is on its way"
+                      - timestamp: "2025-10-21T14:30:00Z"
+                        location: "Warehouse - Aarhus"
+                        status: "Processed"
+                        description: "Package processed at warehouse"
+                      - timestamp: "2025-10-21T10:00:00Z"
+                        location: "Origin"
+                        status: "Picked Up"
+                        description: "Package picked up"
+                delivered:
+                  summary: Package delivered
+                  value:
+                    trackingNo: "TRK-2025-001235"
+                    status: "Delivered"
+                    currentLocation: "Customer Location"
+                    estimatedDelivery: "2025-10-22T14:30:00Z"
+                    deliveryDate: "2025-10-22T14:30:00Z"
+                    history:
+                      - timestamp: "2025-10-22T14:30:00Z"
+                        location: "Customer Location"
+                        status: "Delivered"
+                        description: "Package delivered successfully"
+        '404':
+          description: Tracking number not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ItemSummary:
+      type: object
+      required:
+        - itemId
+        - name
+        - price
+      properties:
+        itemId:
+          type: string
+          description: Unique identifier for the item
+          example: "item-001"
+        name:
+          type: string
+          description: Name of the item
+          example: "Classic T-Shirt"
+        price:
+          type: number
+          format: float
+          description: Price of the item in the default currency
+          example: 29.99
+          minimum: 0
+
+    ItemDetail:
+      type: object
+      required:
+        - itemId
+        - name
+        - price
+        - description
+      properties:
+        itemId:
+          type: string
+          description: Unique identifier for the item
+          example: "item-001"
+        name:
+          type: string
+          description: Name of the item
+          example: "Classic T-Shirt"
+        price:
+          type: number
+          format: float
+          description: Price of the item in the default currency
+          example: 29.99
+          minimum: 0
+        description:
+          type: string
+          description: Full description of the item
+          example: "A comfortable cotton t-shirt perfect for everyday wear. Made from 100% organic cotton with a relaxed fit."
+        category:
+          type: string
+          description: Category of the item
+          example: "Apparel"
+        brand:
+          type: string
+          description: Brand name
+          example: "BESTSELLER"
+        sku:
+          type: string
+          description: Stock Keeping Unit identifier
+          example: "BST-TS-001"
+
+    StockInfo:
+      type: object
+      required:
+        - itemId
+        - inStock
+        - quantity
+      properties:
+        itemId:
+          type: string
+          description: Unique identifier for the item
+          example: "item-001"
+        inStock:
+          type: boolean
+          description: Whether the item is currently in stock
+          example: true
+        quantity:
+          type: integer
+          description: Number of units available in stock
+          example: 150
+          minimum: 0
+        warehouse:
+          type: string
+          description: Name or location of the warehouse
+          example: "Main Warehouse"
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Timestamp when stock information was last updated
+          example: "2025-10-22T06:00:00Z"
+
+    TrackingInfo:
+      type: object
+      required:
+        - trackingNo
+        - status
+        - currentLocation
+      properties:
+        trackingNo:
+          type: string
+          description: Tracking number for the shipment
+          example: "TRK-2025-001234"
+        status:
+          type: string
+          description: Current status of the shipment
+          enum:
+            - Picked Up
+            - Processed
+            - In Transit
+            - Out for Delivery
+            - Delivered
+            - Returned
+            - Failed
+          example: "In Transit"
+        currentLocation:
+          type: string
+          description: Current location of the package
+          example: "Distribution Center - Copenhagen"
+        estimatedDelivery:
+          type: string
+          format: date-time
+          description: Estimated delivery date and time
+          example: "2025-10-25T18:00:00Z"
+        deliveryDate:
+          type: string
+          format: date-time
+          description: Actual delivery date and time (only present when delivered)
+          example: "2025-10-22T14:30:00Z"
+        history:
+          type: array
+          description: Historical tracking events
+          items:
+            $ref: '#/components/schemas/TrackingEvent'
+
+    TrackingEvent:
+      type: object
+      required:
+        - timestamp
+        - location
+        - status
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the tracking event
+          example: "2025-10-22T08:00:00Z"
+        location:
+          type: string
+          description: Location where the event occurred
+          example: "Distribution Center - Copenhagen"
+        status:
+          type: string
+          description: Status at this point in time
+          example: "In Transit"
+        description:
+          type: string
+          description: Detailed description of the event
+          example: "Package is on its way"
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: Error code
+          example: 404
+        message:
+          type: string
+          description: Error message
+          example: "Resource not found"
+        details:
+          type: string
+          description: Additional details about the error
+          example: "The requested item with ID 'item-999' does not exist"
