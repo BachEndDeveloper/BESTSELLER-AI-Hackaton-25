@@ -227,7 +227,7 @@ DECLARE
 BEGIN
     FOR i IN 941..1000 LOOP
         INSERT INTO items (item_id, name, price, description, category, brand, sku) VALUES (
-            'item-' || LPAD(i::TEXT, 3, '0'),
+            'item-' || LPAD(i::TEXT, 4, '0'),
             styles[(i % 5) + 1] || ' Sunglasses ' || colors[(i % 4) + 1],
             ROUND((29 + (i % 70))::NUMERIC, 2),
             'Stylish ' || styles[(i % 5) + 1] || ' sunglasses in ' || colors[(i % 4) + 1] || '. UV protection with scratch-resistant lenses.',
@@ -676,6 +676,7 @@ DECLARE
     events_count INT;
     in_stock_count INT;
     out_stock_count INT;
+    rec RECORD;
 BEGIN
     SELECT COUNT(*) INTO item_count FROM items;
     SELECT COUNT(*) INTO stock_count FROM stock;
