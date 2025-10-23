@@ -51,6 +51,35 @@ Creates the `tracking` and `tracking_events` tables conforming to the `TrackingI
 - Comprehensive indexing
 - Automatic timestamp updates
 
+### 05_insert_demo_data.sql
+Inserts comprehensive demo data into the `items`, `stock`, and `tracking` tables for testing and development purposes.
+
+**Features:**
+- **1,050 items** across multiple categories:
+  - Apparel: T-Shirts (200), Jeans (150), Jackets (100), Dresses (100)
+  - Footwear: Sneakers (120), Boots (80)
+  - Accessories: Bags (80), Belts (50), Watches (60), Sunglasses (60)
+  - Home & Living: Bedding (50)
+- **Stock records** for all items:
+  - Multiple warehouse locations (Copenhagen, Stockholm, Hamburg, Amsterdam)
+  - Mix of in-stock and out-of-stock items (realistic distribution)
+  - Varying quantities (0 to 200 units)
+  - Some items available in multiple warehouses
+- **1,000 tracking records** across all shipping states:
+  - Delivered: 250 (25%)
+  - Out for Delivery: 200 (20%)
+  - In Transit: 250 (25%)
+  - Processed: 100 (10%)
+  - Picked Up: 150 (15%)
+  - Returned: 30 (3%)
+  - Failed: 20 (2%)
+- **Tracking events** with complete shipment history:
+  - Realistic timestamps showing package progression
+  - Multiple events per tracking record
+  - Detailed descriptions for each status change
+- Performance optimizations with temporary trigger disabling during bulk insert
+- Summary statistics displayed after insertion
+
 ## How to Use
 
 ### Prerequisites
@@ -73,19 +102,34 @@ psql -U postgres -d ai-demo -f 03_create_stock_table.sql
 
 # 4. Create the tracking tables
 psql -U postgres -d ai-demo -f 04_create_tracking_table.sql
+
+# 5. Insert demo data (optional, but recommended for development)
+psql -U postgres -d ai-demo -f 05_insert_demo_data.sql
 ```
 
 ### Alternative: Run all scripts at once
 
 ```bash
-# Run all scripts in sequence
-for script in 01_create_database.sql 02_create_items_table.sql 03_create_stock_table.sql 04_create_tracking_table.sql; do
+# Run all scripts in sequence (including demo data)
+for script in 01_create_database.sql 02_create_items_table.sql 03_create_stock_table.sql 04_create_tracking_table.sql 05_insert_demo_data.sql; do
     if [[ "$script" == "01_create_database.sql" ]]; then
         psql -U postgres -f "$script"
     else
         psql -U postgres -d ai-demo -f "$script"
     fi
 done
+```
+
+### Quick setup for development
+
+```bash
+# Run setup script that creates database, tables, and inserts demo data
+cd scripts
+bash -c 'psql -U postgres -f 01_create_database.sql && \
+         psql -U postgres -d ai-demo -f 02_create_items_table.sql && \
+         psql -U postgres -d ai-demo -f 03_create_stock_table.sql && \
+         psql -U postgres -d ai-demo -f 04_create_tracking_table.sql && \
+         psql -U postgres -d ai-demo -f 05_insert_demo_data.sql'
 ```
 
 ## Best Practices Implemented
