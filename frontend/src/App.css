@@ -1,0 +1,7 @@
+/* App.css - minimal styles for the chat application */
+#root {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
