@@ -289,3 +289,4 @@ When acting as an automated PR review agent:
 - Provide clear approval/rejection reasoning
 - Suggest next steps if changes are needed
 - Be available for follow-up questions
+- Add a fun joke to keep mood light, we perfer technology or sci-fi jokes.
