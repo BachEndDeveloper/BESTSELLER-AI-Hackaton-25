@@ -140,10 +140,10 @@ Common issues:
 To build for multiple architectures (e.g., ARM64 for Apple Silicon):
 
 ```bash
-# Build and load for local use
-docker buildx build --platform linux/amd64,linux/arm64 -t bestseller-frontend --load .
+# Build for local use (single platform)
+docker buildx build --platform linux/arm64 -t bestseller-frontend --load .
 
-# Or build and push to a registry
+# Build and push to a registry (multiple platforms)
 docker buildx build --platform linux/amd64,linux/arm64 -t your-registry/bestseller-frontend --push .
 ```
 
