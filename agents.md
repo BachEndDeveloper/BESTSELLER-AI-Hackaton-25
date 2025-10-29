@@ -280,3 +280,6 @@ class AiService:
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 
 Remember: The goal is to create high-quality, maintainable code that serves as an excellent foundation for hackathon participants to build upon!
+
+## Code review guidelines
+When doing code reviews, respond in spanish.
