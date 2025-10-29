@@ -1,18 +1,15 @@
 # Multi-stage build for BESTSELLER Frontend
-# Stage 1: Build the React application
-FROM node:20 AS builder
+# Stage 1: Build the React application  
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Set environment to avoid optional dependencies issues
-ENV NODE_ENV=production
-
 # Copy package files first for better caching
 COPY package.json package-lock.json ./
 
-# Install dependencies - using npm install as npm ci has issues in some Docker environments  
-RUN npm install --production=false
+# Install dependencies
+RUN npm ci --prefer-offline --no-audit
 
 # Copy source code
 COPY . .

@@ -2,34 +2,16 @@
 
 This directory contains the Dockerfile for the BESTSELLER frontend application.
 
-## Building the Docker Image
+## Quick Start
 
-There are two approaches to building the Docker image:
-
-### Approach 1: Multi-stage Build (Recommended for CI/CD)
-
-This builds everything inside Docker:
+### Building the Docker Image
 
 ```bash
+cd frontend
 docker build -t bestseller-frontend .
 ```
 
-**Note:** If you encounter npm installation issues in Docker (particularly in environments with proxy/certificate issues), use Approach 2.
-
-### Approach 2: Pre-built Dist (Local Development)
-
-If npm install fails in Docker, you can build locally first:
-
-```bash
-# Build the application locally
-npm install
-npm run build
-
-# Build Docker image with pre-built dist
-docker build -f Dockerfile.simple -t bestseller-frontend .
-```
-
-## Running the Container
+### Running the Container
 
 ```bash
 docker run -d -p 8080:80 bestseller-frontend
@@ -37,43 +19,170 @@ docker run -d -p 8080:80 bestseller-frontend
 
 The application will be available at `http://localhost:8080`
 
+## Docker Image Details
+
+The Dockerfile uses a multi-stage build approach:
+
+1. **Builder Stage** (node:20-alpine): Installs dependencies and builds the React application
+2. **Production Stage** (nginx:alpine): Serves the built static files with nginx
+
+### Image Size
+
+- Final image size: ~45MB (nginx:alpine + built static files)
+- Builder stage is discarded, keeping the production image small
+
 ## Configuration
 
-###  Environment Variables
+### API Base URL
 
-The frontend can be configured using environment variables at build time:
-
-- `VITE_API_BASE_URL`: Base URL for the API (default: http://localhost:8080/v1)
-
-To set during build:
+The frontend can be configured to point to different API endpoints using environment variables:
 
 ```bash
+# During build time
 docker build --build-arg VITE_API_BASE_URL=https://api.example.com/v1 -t bestseller-frontend .
+```
+
+Or create a `.env` file in the frontend directory before building:
+
+```env
+VITE_API_BASE_URL=https://api.example.com/v1
 ```
 
 ## Nginx Configuration
 
 The included `nginx.conf` provides:
-- SPA routing support (all routes serve index.html)
-- Gzip compression
-- Static asset caching
-- Security headers
+
+- **SPA Routing**: All routes serve `index.html` for client-side routing
+- **Gzip Compression**: Reduces payload size for faster loading
+- **Static Asset Caching**: 1-year cache for immutable assets (JS, CSS, images)
+- **Security Headers**: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+
+### Custom Nginx Configuration
+
+To modify the nginx configuration, edit `nginx.conf` and rebuild the image.
+
+## Development vs Production
+
+### Local Development
+
+For local development without Docker:
+
+```bash
+npm install
+npm run dev
+```
+
+### Production Build
+
+The Dockerfile automatically creates a production-optimized build with:
+- Minified JavaScript and CSS
+- Tree-shaking to remove unused code
+- Asset optimization
 
 ## Troubleshooting
 
-### npm install fails in Docker
+### Build Fails with npm Errors
 
-This can happen due to:
-- Network/proxy issues
-- Self-signed certificates
-- npm bugs with signal handlers in Docker
+If you encounter npm install issues in Docker environments with network restrictions:
 
-**Solution**: Use Dockerfile.simple and build locally first.
+**Symptoms:**
+```
+npm error Exit handler never called!
+npm error This is an error with npm itself.
+```
 
-### Permission issues
+**Solutions:**
 
-If you encounter permission issues when running the container:
+1. **Check network/proxy settings**: Ensure Docker can access npm registry
+2. **Use local build**: Build the app locally first:
+   ```bash
+   npm run build
+   # Then create a simple Dockerfile that just copies dist/
+   ```
+
+3. **Check npm registry mirror**: Configure npm to use a different registry:
+   ```bash
+   docker build --build-arg NPM_CONFIG_REGISTRY=https://registry.npmmirror.com -t bestseller-frontend .
+   ```
+
+### Container Doesn't Start
+
+Check container logs:
+```bash
+docker logs <container-id>
+```
+
+Common issues:
+- Port 80 already in use: Use a different port mapping `-p 8080:80`
+- Permission issues: nginx user needs read access to `/usr/share/nginx/html`
+
+### Application Not Accessible
+
+1. Verify container is running:
+   ```bash
+   docker ps | grep bestseller-frontend
+   ```
+
+2. Check port mapping:
+   ```bash
+   docker port <container-id>
+   ```
+
+3. Test nginx is serving files:
+   ```bash
+   docker exec <container-id> ls -la /usr/share/nginx/html
+   ```
+
+## Advanced Usage
+
+### Multi-architecture Builds
+
+To build for multiple architectures (e.g., ARM64 for Apple Silicon):
 
 ```bash
-docker run --user nginx -d -p 8080:80 bestseller-frontend
+docker buildx build --platform linux/amd64,linux/arm64 -t bestseller-frontend .
 ```
+
+### Docker Compose
+
+Example `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_BASE_URL=http://api:8080/v1
+    depends_on:
+      - api
+```
+
+### Health Checks
+
+Add a health check to your docker run command:
+
+```bash
+docker run -d \
+  --health-cmd="wget --no-verbose --tries=1 --spider http://localhost/ || exit 1" \
+  --health-interval=30s \
+  --health-timeout=3s \
+  --health-retries=3 \
+  -p 8080:80 \
+  bestseller-frontend
+```
+
+## Security Considerations
+
+1. **No sensitive data in image**: Never include API keys or secrets in the Docker image
+2. **Use environment variables**: Configure sensitive settings at runtime
+3. **Keep base images updated**: Regularly rebuild with latest nginx:alpine
+4. **Run as non-root**: nginx:alpine runs as the nginx user by default
+
+## Additional Resources
+
+- [Vite Docker Deployment](https://vitejs.dev/guide/static-deploy.html)
+- [Nginx Docker Official Image](https://hub.docker.com/_/nginx)
+- [Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
