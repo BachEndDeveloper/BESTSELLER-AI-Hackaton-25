@@ -12,6 +12,7 @@ A comprehensive .NET Aspire application implementing the BESTSELLER OpenAPI spec
 - **Observability**: Built-in OpenTelemetry support via Aspire ServiceDefaults
 - **Health Checks**: Automatic health endpoints
 - **Service Discovery**: Built-in service discovery and resilience
+- **Docker Support**: Production-ready Dockerfile and Docker Compose configuration
 
 ## Technology Stack
 
@@ -24,12 +25,21 @@ A comprehensive .NET Aspire application implementing the BESTSELLER OpenAPI spec
 
 ## Prerequisites
 
+### For Development with .NET Aspire
+
 - .NET 9.0 SDK or higher
 - Docker (for running PostgreSQL via Aspire)
 - .NET Aspire workload installed:
   ```bash
   dotnet workload install aspire
   ```
+
+### For Docker Deployment
+
+- Docker and Docker Compose
+- No .NET SDK required on the host machine
+
+See [DOCKER-README.md](DOCKER-README.md) for detailed Docker setup instructions.
 
 ## Project Structure
 
@@ -124,6 +134,39 @@ Update `appsettings.json` with your PostgreSQL connection string if needed:
   }
 }
 ```
+
+## Running with Docker
+
+For production deployments or if you prefer not to install .NET Aspire, you can run the application using Docker:
+
+### Quick Start with Docker Compose
+
+```bash
+# Build and start both PostgreSQL and the API
+docker-compose up
+
+# The API will be available at http://localhost:8080
+```
+
+The Docker Compose setup will:
+- Start a PostgreSQL 16 database
+- Initialize the database with demo data from `../../scripts/`
+- Build and start the API service
+- Configure the connection between services
+
+### Manual Docker Build
+
+```bash
+# Build the image
+docker build -t bestseller-api:latest .
+
+# Run with external PostgreSQL
+docker run -p 8080:8080 \
+  -e ConnectionStrings__postgres="Host=host.docker.internal;Port=5432;Database=ai-demo;Username=postgres;Password=postgres" \
+  bestseller-api:latest
+```
+
+For detailed Docker instructions, troubleshooting, and advanced configurations, see [DOCKER-README.md](DOCKER-README.md).
 
 ## API Endpoints
 
