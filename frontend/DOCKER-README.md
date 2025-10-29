@@ -93,14 +93,14 @@ npm error This is an error with npm itself.
 
 **Solutions:**
 
-1. **Check network/proxy settings**: Ensure Docker can access npm registry
-2. **Use local build**: Build the app locally first:
+1. **Check network/proxy settings:** Ensure Docker can access npm registry
+2. **Use local build:** Build the app locally first:
    ```bash
    npm run build
    # Then create a simple Dockerfile that just copies dist/
    ```
 
-3. **Check npm registry mirror**: Configure npm to use a different registry:
+3. **Check npm registry mirror:** Configure npm to use a different registry:
    ```bash
    docker build --build-arg NPM_CONFIG_REGISTRY=https://registry.npmmirror.com -t bestseller-frontend .
    ```
@@ -140,7 +140,11 @@ Common issues:
 To build for multiple architectures (e.g., ARM64 for Apple Silicon):
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t bestseller-frontend .
+# Build and load for local use
+docker buildx build --platform linux/amd64,linux/arm64 -t bestseller-frontend --load .
+
+# Or build and push to a registry
+docker buildx build --platform linux/amd64,linux/arm64 -t your-registry/bestseller-frontend --push .
 ```
 
 ### Docker Compose
