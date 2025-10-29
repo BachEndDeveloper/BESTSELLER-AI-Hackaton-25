@@ -246,6 +246,7 @@ Code reviews are essential for maintaining code quality, knowledge sharing, and 
 ### Copilot PR Review Agent Guidelines
 When performing code reviews, respond in spanish.
 
+
 #### Agent-Specific Responsibilities
 When acting as an automated PR review agent:
 
