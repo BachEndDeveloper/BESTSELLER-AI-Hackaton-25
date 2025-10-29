@@ -81,13 +81,14 @@ What would you like to know?`,
         timestamp: new Date(),
       };
       
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       return {
         id: Date.now().toString(),
         role: 'assistant',
         content: 'Sorry, I encountered an error processing your request.',
         timestamp: new Date(),
-        error: error.response?.data?.message || error.message || 'Unknown error',
+        error: err.response?.data?.message || err.message || 'Unknown error',
       };
     }
   },
