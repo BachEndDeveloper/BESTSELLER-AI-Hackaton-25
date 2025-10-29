@@ -22,6 +22,7 @@ All implementations use **Microsoft Semantic Kernel** as the primary library for
 │   ├── java/        # Java Spring demo with AI integration
 │   ├── dotnet/      # .NET Aspire demo with AI integration
 │   └── python/      # Python FastAPI demo with AI integration
+├── frontend/       # React TypeScript chat interface
 ├── agents.md        # Best practices and guidelines for AI agents
 └── README.md        # This file
 ```
@@ -30,6 +31,18 @@ Each language directory contains:
 - `.editorconfig` - Code formatting and style configurations
 - `README.md` - Language-specific setup and usage instructions
 - Source code and project files
+
+### Frontend Chat Interface
+
+The `frontend/` directory contains a modern React TypeScript chat application that interacts with the BESTSELLER API:
+- Built with React 19 and TypeScript
+- Vite for fast development and optimized builds
+- Auto-generated API client from OpenAPI specification
+- Modern, responsive UI with gradient design
+- Natural language query processing
+- Full integration with all API endpoints (items, stock, tracking)
+
+See [frontend/README.md](frontend/README.md) for setup and usage instructions.
 
 ## 🚀 Getting Started
 
