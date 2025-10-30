@@ -24,7 +24,22 @@ This demo showcases:
 - pip (Python package manager)
 - Azure OpenAI account with API access (or placeholder for demo)
 
-## Installation
+## Quick Start
+
+Use the quickstart script for automated setup:
+
+```bash
+./quickstart.sh
+```
+
+This will:
+- Create a virtual environment
+- Install all dependencies
+- Create a `.env` file from the example
+- Run tests to verify everything works
+- Show example usage
+
+## Manual Installation
 
 1. **Create a virtual environment**:
    ```bash
@@ -110,6 +125,12 @@ Send natural language messages to interact with the AI assistant.
 
 ## Example Usage
 
+Run the example script to see available data and sample API calls:
+
+```bash
+python3 example_usage.py
+```
+
 ### Using cURL
 
 ```bash
@@ -151,14 +172,18 @@ print(response.json()["response"])
 
 ```
 demo/python/
-├── main.py           # FastAPI application and endpoints
-├── config.py         # Configuration and settings
-├── models.py         # Data models and static data
-├── plugin.py         # Semantic Kernel plugin with functions
-├── requirements.txt  # Python dependencies
-├── .env             # Environment variables (create this)
-├── .gitignore       # Git ignore rules
-└── README.md        # This file
+├── main.py             # FastAPI application and endpoints
+├── config.py           # Configuration and settings
+├── models.py           # Data models and static data
+├── plugin.py           # Semantic Kernel plugin with functions
+├── requirements.txt    # Python dependencies
+├── test_data.py        # Test script for data models
+├── example_usage.py    # Example usage and API calls
+├── quickstart.sh       # Quick start script
+├── .env.example        # Example environment variables
+├── .env                # Environment variables (create this)
+├── .gitignore          # Git ignore rules
+└── README.md           # This file
 ```
 
 ## Data Models
