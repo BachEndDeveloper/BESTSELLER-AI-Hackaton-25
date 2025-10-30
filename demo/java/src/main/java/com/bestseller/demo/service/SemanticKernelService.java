@@ -102,12 +102,12 @@ public class SemanticKernelService {
      * Note: This requires proper Azure OpenAI configuration with function calling support.
      *
      * @param userMessage the user's message/query
-     * @return the AI's response
+     * @return Mono containing the AI's response
      */
-    public String chat(String userMessage) {
-        try {
-            logger.info("Processing chat message: {}", userMessage);
+    public reactor.core.publisher.Mono<String> chat(String userMessage) {
+        logger.info("Processing chat message: {}", userMessage);
 
+        try {
             ChatCompletionService chatService = kernel.getService(ChatCompletionService.class);
             ChatHistory history = new ChatHistory();
             
@@ -131,21 +131,30 @@ public class SemanticKernelService {
                 .withPromptExecutionSettings(executionSettings)
                 .build();
 
-            // Get chat completion
-            var response = chatService.getChatMessageContentsAsync(
-                history,
-                kernel,
-                invocationContext
-            ).block();
-
-            String aiResponse = response.get(0).getContent();
-            logger.info("AI response: {}", aiResponse);
-            return aiResponse;
-
+            // Get chat completion reactively
+            return chatService.getChatMessageContentsAsync(
+                    history,
+                    kernel,
+                    invocationContext
+                )
+                .map(response -> {
+                    String aiResponse = response.get(0).getContent();
+                    logger.info("AI response: {}", aiResponse);
+                    return aiResponse;
+                })
+                .onErrorResume(e -> {
+                    logger.error("Error processing chat message", e);
+                    return reactor.core.publisher.Mono.just(
+                        "Error processing your request: " + e.getMessage() + 
+                        ". Note: This feature requires proper Azure OpenAI configuration."
+                    );
+                });
         } catch (Exception e) {
-            logger.error("Error processing chat message", e);
-            return "Error processing your request: " + e.getMessage() + 
-                   ". Note: This feature requires proper Azure OpenAI configuration.";
+            logger.error("Error initializing chat service", e);
+            return reactor.core.publisher.Mono.just(
+                "Error initializing chat service: " + e.getMessage() + 
+                ". Note: This feature requires proper Azure OpenAI configuration."
+            );
         }
     }
 }

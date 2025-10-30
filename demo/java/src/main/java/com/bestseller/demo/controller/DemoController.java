@@ -58,22 +58,22 @@ public class DemoController {
      * }
      *
      * @param request the chat request with user message
-     * @return the AI's response
+     * @return Mono containing the AI's response
      */
     @PostMapping("/chat")
-    public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request) {
+    public reactor.core.publisher.Mono<ResponseEntity<Map<String, String>>> chat(@RequestBody Map<String, String> request) {
         String userMessage = request.get("message");
         if (userMessage == null || userMessage.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of(
+            return reactor.core.publisher.Mono.just(ResponseEntity.badRequest().body(Map.of(
                 "error", "Message is required"
-            ));
+            )));
         }
 
-        String response = semanticKernelService.chat(userMessage);
-        return ResponseEntity.ok(Map.of(
-            "userMessage", userMessage,
-            "aiResponse", response
-        ));
+        return semanticKernelService.chat(userMessage)
+            .map(response -> ResponseEntity.ok(Map.of(
+                "userMessage", userMessage,
+                "aiResponse", response
+            )));
     }
 
     /**

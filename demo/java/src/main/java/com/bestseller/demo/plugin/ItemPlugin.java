@@ -36,8 +36,13 @@ public class ItemPlugin {
         ) String itemId
     ) {
         return dataStore.findItemById(itemId)
-            .map(item -> String.format(
-                "Item ID: %s, Name: %s, Price: $%.2f, Category: %s, Description: %s",
+            .map(item -> String.format("""
+                Item ID: %s
+                Name: %s
+                Price: $%.2f
+                Category: %s
+                Description: %s
+                """.stripTrailing(),
                 item.itemId(),
                 item.name(),
                 item.price(),
