@@ -2,7 +2,23 @@
 
 ## Overview
 
-This demo showcases a complete FastAPI backend with Microsoft Semantic Kernel integration for AI-powered chat capabilities. The implementation follows the BESTSELLER AI Hackathon theme of a fashion retail catalog system.
+This demo showcases a complete FastAPI backend with Microsoft Semantic Kernel integration for AI-powered chat capabilities. The implementation follows the BESTSELLER AI Hackathon theme of a fashion retail catalog system and uses the **latest Semantic Kernel Python API (v1.x)**.
+
+## Recent Updates
+
+**✅ Updated to Latest Semantic Kernel API (January 2025)**
+- Migrated from `function_choice_behavior` to `function_call_behavior`
+- Updated from `FunctionChoiceBehavior.Auto()` to `FunctionCallBehavior.EnableFunctions(auto_invoke=True)`
+- Using `get_chat_message_contents()` (plural) for chat completion
+- Improved execution settings pattern with proper function calling configuration
+
+**✅ Python Best Practices Applied**
+- Enhanced type hints with `Final` for constants
+- Improved logging with structured format and proper log levels
+- Added comprehensive docstrings (Google style) with Args/Returns/Raises
+- Using f-strings correctly (avoided where not needed for logging)
+- Added validation to Pydantic models with `Field` constraints
+- Proper exception chaining with `raise ... from e`
 
 ## Architecture
 
@@ -54,17 +70,37 @@ This demo showcases a complete FastAPI backend with Microsoft Semantic Kernel in
 - Error handling with proper HTTP status codes
 - Automatic OpenAPI documentation (Swagger/ReDoc)
 
-### 2. Semantic Kernel Integration
+### 2. Semantic Kernel Integration (Latest v1.x API)
 
 **Configuration:**
 - Service: Azure OpenAI Chat Completion
 - Deployment: Configurable via environment variables
 - API Version: 2024-02-15-preview (configurable)
-- Function Calling: Auto mode (AI decides when to call functions)
+- Function Calling: `FunctionCallBehavior.EnableFunctions(auto_invoke=True)`
+
+**Latest API Patterns Used:**
+```python
+# Import from the correct module (updated in v1.x)
+from semantic_kernel.connectors.ai.function_call_behavior import FunctionCallBehavior
+
+# Configure execution settings with modern pattern
+execution_settings = AzureChatCompletion.get_prompt_execution_settings_class()(
+    function_call_behavior=FunctionCallBehavior.EnableFunctions(
+        auto_invoke=True, filters={}
+    )
+)
+
+# Use plural method for chat message contents
+response = await chat_completion.get_chat_message_contents(
+    chat_history=chat_history,
+    settings=execution_settings,
+    kernel=kernel,
+)
+```
 
 **Chat Flow:**
 1. User sends message to `/chat`
-2. System message sets AI assistant context
+2. System message sets AI assistant context (stored as constant)
 3. Kernel processes message with function calling enabled
 4. AI automatically invokes relevant plugin functions
 5. Response generated based on function results

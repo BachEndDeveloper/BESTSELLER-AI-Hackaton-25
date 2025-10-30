@@ -1,7 +1,7 @@
 """Semantic Kernel plugin for BESTSELLER data queries."""
 
 import json
-from typing import Annotated
+from typing import Annotated, Final
 
 from semantic_kernel.functions import kernel_function
 
@@ -9,14 +9,25 @@ from models import ITEMS, STOCK, TRACKING
 
 
 class BestsellerPlugin:
-    """Plugin that provides functions to query BESTSELLER data."""
+    """Plugin that provides functions to query BESTSELLER data.
+    
+    This plugin exposes kernel functions for:
+    - Listing and searching items in the catalog
+    - Retrieving detailed item information
+    - Checking stock availability
+    - Tracking shipments
+    """
 
     @kernel_function(
         name="get_all_items",
         description="Get a list of all available items with their ID, name, and price",
     )
     def get_all_items(self) -> Annotated[str, "JSON array of all items"]:
-        """Get all items in the catalog."""
+        """Get all items in the catalog.
+        
+        Returns:
+            str: JSON string containing an array of all items with id, name, and price.
+        """
         items_list = [
             {"item_id": item.item_id, "name": item.name, "price": item.price}
             for item in ITEMS.values()
@@ -30,7 +41,14 @@ class BestsellerPlugin:
     def get_item_details(
         self, item_id: Annotated[str, "The unique identifier of the item"]
     ) -> Annotated[str, "JSON object with item details or error message"]:
-        """Get detailed information for a specific item."""
+        """Get detailed information for a specific item.
+        
+        Args:
+            item_id: The unique identifier of the item to retrieve.
+            
+        Returns:
+            str: JSON string with item details or error message if not found.
+        """
         item = ITEMS.get(item_id)
         if not item:
             return json.dumps({"error": f"Item {item_id} not found"})
@@ -55,7 +73,14 @@ class BestsellerPlugin:
     def get_stock_info(
         self, item_id: Annotated[str, "The unique identifier of the item"]
     ) -> Annotated[str, "JSON object with stock information or error message"]:
-        """Get stock information for a specific item."""
+        """Get stock information for a specific item.
+        
+        Args:
+            item_id: The unique identifier of the item to check stock for.
+            
+        Returns:
+            str: JSON string with stock information or error message if not found.
+        """
         stock = STOCK.get(item_id)
         if not stock:
             return json.dumps({"error": f"Stock information for {item_id} not found"})
@@ -79,7 +104,15 @@ class BestsellerPlugin:
         self,
         tracking_no: Annotated[str, "The tracking number for the shipment"],
     ) -> Annotated[str, "JSON object with tracking information or error message"]:
-        """Get tracking information for a shipment."""
+        """Get tracking information for a shipment.
+        
+        Args:
+            tracking_no: The tracking number to look up.
+            
+        Returns:
+            str: JSON string with tracking information including status, location, 
+                and history, or error message if not found.
+        """
         tracking = TRACKING.get(tracking_no)
         if not tracking:
             return json.dumps(
@@ -117,7 +150,14 @@ class BestsellerPlugin:
     def search_items_by_name(
         self, search_term: Annotated[str, "The search term to match against item names"]
     ) -> Annotated[str, "JSON array of matching items"]:
-        """Search for items by name."""
+        """Search for items by name.
+        
+        Args:
+            search_term: The search term to match against item names (case-insensitive).
+            
+        Returns:
+            str: JSON string containing array of matching items with id, name, and price.
+        """
         search_term_lower = search_term.lower()
         matching_items = [
             {"item_id": item.item_id, "name": item.name, "price": item.price}

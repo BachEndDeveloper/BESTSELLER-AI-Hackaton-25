@@ -1,23 +1,26 @@
 """Main FastAPI application with Semantic Kernel integration."""
 
 import logging
-from typing import Any
+from typing import Any, Final
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.connectors.ai.function_choice_behavior import (
-    FunctionChoiceBehavior,
+from semantic_kernel.connectors.ai.function_call_behavior import (
+    FunctionCallBehavior,
 )
-from semantic_kernel.contents import ChatHistory
+from semantic_kernel.contents.chat_history import ChatHistory
 
 from config import settings
 from plugin import BestsellerPlugin
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI application
@@ -41,31 +44,50 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
 
-    message: str
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="The user's message to the AI assistant",
+    )
 
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
 
-    response: str
+    response: str = Field(..., description="The AI assistant's response")
+
+
+# Constants
+SERVICE_ID: Final[str] = "azure_chat_completion"
+SYSTEM_PROMPT: Final[str] = """You are a helpful assistant for BESTSELLER, a fashion retail company.
+You can help customers with:
+- Finding and browsing items in our catalog
+- Checking stock availability for items
+- Tracking shipments
+
+Use the available functions to answer customer questions accurately.
+Be friendly, concise, and helpful in your responses."""
 
 
 # Initialize Semantic Kernel
 def create_kernel() -> Kernel:
-    """Create and configure a Semantic Kernel instance."""
+    """Create and configure a Semantic Kernel instance.
+    
+    Returns:
+        Kernel: Configured kernel with Azure OpenAI service and BESTSELLER plugin.
+    """
     kernel = Kernel()
 
     # Add Azure OpenAI chat completion service
-    service_id = "azure_chat_completion"
-    kernel.add_service(
-        AzureChatCompletion(
-            service_id=service_id,
-            deployment_name=settings.azure_openai_deployment_name,
-            endpoint=settings.azure_openai_endpoint,
-            api_key=settings.azure_openai_api_key,
-            api_version=settings.azure_openai_api_version,
-        )
+    chat_service = AzureChatCompletion(
+        service_id=SERVICE_ID,
+        deployment_name=settings.azure_openai_deployment_name,
+        endpoint=settings.azure_openai_endpoint,
+        api_key=settings.azure_openai_api_key,
+        api_version=settings.azure_openai_api_version,
     )
+    kernel.add_service(chat_service)
 
     # Add the BESTSELLER plugin
     kernel.add_plugin(BestsellerPlugin(), plugin_name="bestseller")
@@ -108,54 +130,57 @@ async def chat(request: ChatRequest) -> ChatResponse:
     - "Tell me about item-001"
     - "What's the stock status of item-002?"
     - "Track shipment TRK-2025-001234"
+    
+    Args:
+        request: ChatRequest containing the user's message.
+        
+    Returns:
+        ChatResponse: The AI assistant's response.
+        
+    Raises:
+        HTTPException: If there's an error processing the request.
     """
     try:
-        logger.info(f"Received chat request: {request.message}")
+        logger.info("Received chat request: %s", request.message)
 
         # Create a chat history
         chat_history = ChatHistory()
 
         # Add system message
-        chat_history.add_system_message(
-            """You are a helpful assistant for BESTSELLER, a fashion retail company.
-You can help customers with:
-- Finding and browsing items in our catalog
-- Checking stock availability for items
-- Tracking shipments
-
-Use the available functions to answer customer questions accurately.
-Be friendly, concise, and helpful in your responses."""
-        )
+        chat_history.add_system_message(SYSTEM_PROMPT)
 
         # Add user message
         chat_history.add_user_message(request.message)
 
-        # Configure function calling behavior
-        execution_settings = kernel.get_prompt_execution_settings_from_service_id(
-            service_id="azure_chat_completion"
-        )
-        execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-
         # Get the chat completion service
-        chat_completion = kernel.get_service(service_id="azure_chat_completion")
+        chat_completion = kernel.get_service(service_id=SERVICE_ID)
+
+        # Configure execution settings with function calling
+        execution_settings = AzureChatCompletion.get_prompt_execution_settings_class()(
+            function_call_behavior=FunctionCallBehavior.EnableFunctions(
+                auto_invoke=True, filters={}
+            )
+        )
 
         # Get response from the kernel
-        response = await chat_completion.get_chat_message_content(
+        response = await chat_completion.get_chat_message_contents(
             chat_history=chat_history,
             settings=execution_settings,
             kernel=kernel,
         )
 
-        logger.info(f"Generated response: {response}")
+        # Extract the response text from the result
+        response_text = str(response[0]) if response else "No response generated"
+        logger.info("Generated response: %s", response_text)
 
-        return ChatResponse(response=str(response))
+        return ChatResponse(response=response_text)
 
     except Exception as e:
-        logger.error(f"Error processing chat request: {str(e)}", exc_info=True)
+        logger.error("Error processing chat request: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Error processing request: {str(e)}",
-        )
+        ) from e
 
 
 @app.get("/items")
