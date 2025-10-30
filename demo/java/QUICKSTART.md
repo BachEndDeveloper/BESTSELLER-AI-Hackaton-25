@@ -84,7 +84,7 @@ To enable AI chat functionality:
 ### Port 8080 already in use
 Run on a different port:
 ```bash
-SERVER_PORT=8081 mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081
 ```
 
 Then use port 8081 in your curl commands.
