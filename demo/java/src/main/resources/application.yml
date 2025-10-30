@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: semantic-kernel-demo
+
+server:
+  port: 8080
+
+# Azure OpenAI Configuration (use placeholder values)
+# Replace these with your actual Azure OpenAI credentials
+azure:
+  openai:
+    # Your Azure OpenAI endpoint URL
+    endpoint: https://your-resource-name.openai.azure.com
+    # Your Azure OpenAI API key
+    api-key: your-api-key-here
+    # Your deployment name (the name you gave to your GPT-4 deployment)
+    deployment-name: gpt-4
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.bestseller.demo: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
